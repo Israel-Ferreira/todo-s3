@@ -1,6 +1,8 @@
 package services
 
 import (
+	"mime/multipart"
+
 	"github.com/Israel-Ferreira/todo-s3/pkg/data"
 	"github.com/Israel-Ferreira/todo-s3/pkg/models"
 )
@@ -11,5 +13,5 @@ type UserService interface {
 	Create(data.UserData) (uint64, error)
 	Update(uint64, data.UserData) error
 	DeleteById(uint64) error
-	UploadPhoto(uint64) (string, error)
+	UploadPhoto(uint64, multipart.File, *multipart.FileHeader) (string, error)
 }

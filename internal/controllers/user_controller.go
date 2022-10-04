@@ -120,5 +120,41 @@ func (uc *UserControllerImpl) Create(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (uc *UserControllerImpl) UploadProfilePhoto(rw http.ResponseWriter, r *http.Request) {
+	reqId := chi.URLParam(r, "userId")
 
+	uintId, err := strconv.ParseUint(reqId, 10, 64)
+
+	if err != nil {
+		log.Printf("Erro ao fazer a requisição: %v \n", err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	file, fileHeader, err := r.FormFile("profile_photo")
+
+	if err != nil {
+		log.Printf("Erro ao fazer a requisição: %v \n", err)
+		rw.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	defer file.Close()
+
+	url, err := uc.service.UploadPhoto(uintId, file, fileHeader)
+
+	if err != nil {
+		log.Printf("Erro ao fazer a requisição: %v \n", err)
+		rw.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	fmt.Println(url)
+
+	rw.WriteHeader(http.StatusNoContent)
+}
+
+func NewUserController(srvc services.UserService) *UserControllerImpl {
+	return &UserControllerImpl{
+		service: srvc,
+	}
 }
