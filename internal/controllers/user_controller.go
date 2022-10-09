@@ -31,7 +31,7 @@ func (uc *UserControllerImpl) GetAll(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (uc *UserControllerImpl) GetById(rw http.ResponseWriter, r *http.Request) {
-	reqId := chi.URLParam(r, "id")
+	reqId := chi.URLParam(r, "userId")
 
 	uintId, err := strconv.ParseUint(reqId, 10, 64)
 
@@ -44,6 +44,7 @@ func (uc *UserControllerImpl) GetById(rw http.ResponseWriter, r *http.Request) {
 	user, err := uc.service.GetById(uintId)
 
 	if err != nil {
+		log.Println(err)
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
 	}

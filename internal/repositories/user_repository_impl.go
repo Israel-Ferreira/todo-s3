@@ -58,15 +58,19 @@ func (usr *UserRepositoryImpl) FindById(id uint64) (*models.User, error) {
 
 	defer conn.Close()
 
-	row := conn.QueryRow("select u.id, u.username, u.email, u.profile_photo_url from users where u.id = $1", id)
+	row := conn.QueryRow("select u.id, u.username, u.email, u.profile_photo_url from users u where u.id = $1", id)
 
 	user := models.NewUser()
 
-	if err := row.Scan(&user.ID, &user.Name, &user.Email, &user.UserProfileImgUrl); err != nil {
+	var profilePhotoUrl sql.NullString
+
+	if err := row.Scan(&user.ID, &user.Name, &user.Email, &profilePhotoUrl); err != nil {
 		return nil, err
 	}
 
-	return nil, nil
+	user.UserProfileImgUrl = profilePhotoUrl.String
+
+	return user, nil
 }
 
 func (usr *UserRepositoryImpl) Create(user models.User) (uint64, error) {
