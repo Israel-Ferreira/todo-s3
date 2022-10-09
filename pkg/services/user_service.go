@@ -8,7 +8,7 @@ import (
 )
 
 type UserService interface {
-	GetAll() ([]*models.User, error)
+	GetAll() ([]models.User, error)
 	GetById(uint64) (*models.User, error)
 	Create(data.UserData) (uint64, error)
 	Update(uint64, data.UserData) error

@@ -16,10 +16,10 @@ func CreateUserRouter(userController controllers.UserController) *chi.Mux {
 	router.Use(middleware.Heartbeat("/"))
 	router.Use(middlewares.JsonMiddleware)
 
+	router.Post("/signup", userController.Create)
+
 	router.Route("/users", func(r chi.Router) {
-
-		r.Post("/", userController.Create)
-
+		r.Get("/", userController.GetAll)
 		r.Route("/{userId}", func(r chi.Router) {
 			r.Get("/", userController.GetById)
 			r.Delete("/", userController.DeleteById)

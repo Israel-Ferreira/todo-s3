@@ -6,6 +6,7 @@ import (
 
 	"github.com/Israel-Ferreira/todo-s3/internal/config"
 	"github.com/Israel-Ferreira/todo-s3/internal/controllers"
+	"github.com/Israel-Ferreira/todo-s3/internal/repositories"
 	"github.com/Israel-Ferreira/todo-s3/internal/routes"
 	implService "github.com/Israel-Ferreira/todo-s3/internal/services"
 )
@@ -18,7 +19,9 @@ func init() {
 
 func main() {
 
-	userSrvc := implService.UserServiceImpl{}
+	userRepository := repositories.NewUserRepository()
+
+	userSrvc := implService.NewUserServiceImpl(userRepository)
 
 	ctr := controllers.NewUserController(userSrvc)
 
