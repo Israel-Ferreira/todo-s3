@@ -9,4 +9,5 @@ type UserRepository interface {
 	Update(uint64, models.User) error
 	UpdateProfileImageUrl(uint64, string) error
 	Create(models.User) (uint64, error)
+	FindByEmail(string) (*models.User, error)
 }

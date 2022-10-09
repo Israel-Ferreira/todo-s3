@@ -2,6 +2,8 @@ package services
 
 import (
 	"bytes"
+	"errors"
+	"log"
 	"mime/multipart"
 	"net/http"
 
@@ -9,6 +11,7 @@ import (
 	"github.com/Israel-Ferreira/todo-s3/pkg/data"
 	"github.com/Israel-Ferreira/todo-s3/pkg/models"
 	"github.com/Israel-Ferreira/todo-s3/pkg/repositories"
+	"github.com/Israel-Ferreira/todo-s3/pkg/security"
 	"github.com/Israel-Ferreira/todo-s3/pkg/services"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/private/protocol/rest"
@@ -33,6 +36,7 @@ func (usi UserServiceImpl) GetAll() ([]models.User, error) {
 	users, err := usi.repository.FindAll()
 
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 
@@ -49,7 +53,44 @@ func (usi UserServiceImpl) DeleteById(id uint64) error {
 }
 
 func (usi UserServiceImpl) Create(userData data.UserData) (uint64, error) {
-	return 1, nil
+
+	if userData.Name == "" {
+		return 0, errors.New("o nome não pode estar em branco")
+	}
+
+	if userData.Email == "" {
+		return 0, errors.New("o email não pode estar em branco")
+	}
+
+	if userData.Password == "" {
+		return 0, errors.New("a senha não pode estar em branco")
+	}
+
+	_, err := usi.repository.FindByEmail(userData.Email)
+
+	if err == nil {
+		return 0, errors.New("email já cadastrado")
+	}
+
+	hashPass, err := security.HashPassword(userData.Password)
+
+	if err != nil {
+		return 0, err
+	}
+
+	user := models.User{
+		Name:     userData.Name,
+		Email:    userData.Email,
+		Password: string(hashPass),
+	}
+
+	insertedId, err := usi.repository.Create(user)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return insertedId, nil
 }
 
 func (usi UserServiceImpl) Update(id uint64, userData data.UserData) error {

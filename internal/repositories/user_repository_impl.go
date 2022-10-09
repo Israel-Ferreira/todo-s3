@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"database/sql"
 	"log"
 
 	"github.com/Israel-Ferreira/todo-s3/internal/db"
@@ -34,9 +35,13 @@ func (usr *UserRepositoryImpl) FindAll() ([]models.User, error) {
 	for query.Next() {
 		user := models.NewUser()
 
-		if err := query.Scan(&user.ID, &user.Name, &user.Email, &user.UserProfileImgUrl); err != nil {
+		var imgUrl sql.NullString
+
+		if err := query.Scan(&user.ID, &user.Name, &user.Email, &imgUrl); err != nil {
 			return nil, err
 		}
+
+		user.UserProfileImgUrl = imgUrl.String
 
 		users = append(users, *user)
 	}
@@ -84,19 +89,13 @@ func (usr *UserRepositoryImpl) Create(user models.User) (uint64, error) {
 
 	defer stmt.Close()
 
-	result, err := stmt.Exec(&user.Name, &user.Email, &user.Password)
+	_, err = stmt.Exec(&user.Name, &user.Email, &user.Password)
 
 	if err != nil {
 		return 0, err
 	}
 
-	id, err := result.LastInsertId()
-
-	if err != nil {
-		return 0, err
-	}
-
-	return uint64(id), nil
+	return 1, nil
 }
 
 func (usr *UserRepositoryImpl) DeleteById(id uint64) error {
@@ -151,6 +150,28 @@ func (usr *UserRepositoryImpl) UpdateProfileImageUrl(id uint64, url string) erro
 func (usr *UserRepositoryImpl) Update(id uint64, user models.User) error {
 	return nil
 }
+
+func (usr *UserRepositoryImpl) FindByEmail(email string) (*models.User, error) {
+	conn, err := db.OpenDbConnection()
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer conn.Close()
+
+	query := conn.QueryRow("select u.id, u.username, u.email, u.profile_photo_url from users u where u.email = $1", email)
+
+	user := models.NewUser()
+
+	if err := query.Scan(&user.ID, &user.Name, &user.Email, &user.UserProfileImgUrl); err != nil {
+		return nil, err
+	}
+
+	return user, nil
+
+}
+
 func NewUserRepository() repositories.UserRepository {
 	return &UserRepositoryImpl{}
 }
